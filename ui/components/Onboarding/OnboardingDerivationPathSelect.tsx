@@ -5,12 +5,14 @@ import React, {
   useRef,
   useState,
 } from "react"
+import { selectLedgerDerivationPath } from "@tallyho/tally-background/redux-slices/selectors"
 import { useTranslation } from "react-i18next"
 import { i18n } from "../../_locales/i18n"
 import SharedButton from "../Shared/SharedButton"
 import SharedInput from "../Shared/SharedInput"
 import SharedModal from "../Shared/SharedModal"
 import SharedSelect, { Option } from "../Shared/SharedSelect"
+import { useBackgroundSelector } from "../../hooks"
 
 // TODO make this network specific
 const initialDerivationPaths: Option[] = [
@@ -55,11 +57,16 @@ export default function OnboardingDerivationPathSelect({
 }): ReactElement {
   const { t } = useTranslation("translation", { keyPrefix: "onboarding" })
   const [derivationPaths, setDerivationPaths] = useState(initialDerivationPaths)
-
+  const ledgerDerivationPath = useBackgroundSelector(selectLedgerDerivationPath)
   const [modalStep, setModalStep] = useState(0)
   const [customPath, setCustomPath] = useState(initialCustomPath)
   const [customPathLabel, setCustomPathLabel] = useState("")
-  const [defaultIndex, setDefaultIndex] = useState<number>()
+  const selectedIndex = initialDerivationPaths.findIndex(
+    (path) => path.value === `m/${ledgerDerivationPath}`
+  )
+  const [defaultIndex, setDefaultIndex] = useState(
+    selectedIndex === -1 ? 0 : selectedIndex
+  )
 
   // Reset value to display placeholder after adding a custom path
   const customPathValue = customPath.isReset

@@ -30,6 +30,7 @@ export default function LedgerPanelContainer({
           max-width: 24rem;
           margin: 0 auto;
           padding: 1rem;
+          position: relative;
         }
 
         .indicator {

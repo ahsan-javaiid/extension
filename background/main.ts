@@ -1055,6 +1055,10 @@ export default class Main extends BaseService<never> {
     this.ledgerService.emitter.on("usbDeviceCount", (usbDeviceCount) => {
       this.store.dispatch(setUsbDeviceCount({ usbDeviceCount }))
     })
+
+    uiSliceEmitter.on("derivationPathChange", (path: string) => {
+      this.ledgerService.setDefaultDerivationPath(path)
+    })
   }
 
   async connectKeyringService(): Promise<void> {
