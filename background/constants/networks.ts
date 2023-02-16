@@ -99,6 +99,12 @@ export const DEFAULT_NETWORKS = [
   ...(isEnabled(FeatureFlags.SUPPORT_ARBITRUM_NOVA) ? [ARBITRUM_NOVA] : []),
 ]
 
+export function isBuiltInNetwork(network: EVMNetwork): boolean {
+  return DEFAULT_NETWORKS.some(
+    (builtInNetwork) => builtInNetwork.chainID === network.chainID
+  )
+}
+
 export const FORK: EVMNetwork = {
   name: "Ethereum",
   baseAsset: ETH,
@@ -129,6 +135,7 @@ export const NETWORK_BY_CHAIN_ID = {
   [GOERLI.chainID]: GOERLI,
   [FORK.chainID]: FORK,
 }
+
 export const TEST_NETWORK_BY_CHAIN_ID = new Set(
   [GOERLI].map((network) => network.chainID)
 )
