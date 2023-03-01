@@ -112,7 +112,7 @@ export default function NFTCollection(props: {
 
   const onItemClick = (nft: NFTCached) => openPreview({ nft, collection })
 
-  if (!nftCount && !isLoading && wasUpdated) return <></>
+  if ((!nftCount || !nfts.length) && !isLoading && wasUpdated) return <></>
 
   return (
     <>
@@ -121,6 +121,7 @@ export default function NFTCollection(props: {
           expanded: isExpanded && !isLoading,
           invisible: !nftCount,
         })}
+        data-testid="nft_list_item"
       >
         <li
           ref={collectionRef}

@@ -166,6 +166,8 @@ import {
   deleteAbilitiesForAccount,
   initAbilities,
 } from "./redux-slices/abilities"
+import { AddChainRequestData } from "./services/provider-bridge"
+import { AnalyticsEvent } from "./lib/posthog"
 
 // This sanitizer runs on store and action data before serializing for remote
 // redux devtools. The goal is to end up with an object that is directly
@@ -344,6 +346,9 @@ export default class Main extends BaseService<never> {
         } else {
           throw new Error(`Unexpected JSON persisted for state: ${state}`)
         }
+      } else {
+        // Should be false if you don't want new users to see the modal
+        window.localStorage.setItem("modal_meet_taho", "false")
       }
     }
 
@@ -500,8 +505,6 @@ export default class Main extends BaseService<never> {
 
   protected override async internalStartService(): Promise<void> {
     await super.internalStartService()
-
-    this.indexingService.started().then(async () => this.chainService.started())
 
     const servicesToBeStarted = [
       this.preferenceService.startService(),
@@ -774,6 +777,9 @@ export default class Main extends BaseService<never> {
     this.chainService.emitter.on("transactionSend", () => {
       this.store.dispatch(
         setSnackbarMessage("Transaction signed, broadcasting...")
+      )
+      this.store.dispatch(
+        clearTransactionState(TransactionConstructionStatus.Idle)
       )
     })
 
@@ -1313,6 +1319,13 @@ export default class Main extends BaseService<never> {
   }
 
   async connectProviderBridgeService(): Promise<void> {
+    uiSliceEmitter.on("addCustomNetworkResponse", ([requestId, success]) => {
+      return this.providerBridgeService.handleAddNetworkRequest(
+        requestId,
+        success
+      )
+    })
+
     this.providerBridgeService.emitter.on(
       "requestPermission",
       (permissionRequest: PermissionRequest) => {
@@ -1614,6 +1627,10 @@ export default class Main extends BaseService<never> {
     })
   }
 
+  getAddNetworkRequestDetails(requestId: string): AddChainRequestData {
+    return this.providerBridgeService.getNewCustomRPCDetails(requestId)
+  }
+
   async updateSignerTitle(
     signer: AccountSignerWithId,
     title: string
@@ -1672,7 +1689,7 @@ export default class Main extends BaseService<never> {
       const openTime = Date.now()
 
       port.onDisconnect.addListener(() => {
-        this.analyticsService.sendAnalyticsEvent("UI shown", {
+        this.analyticsService.sendAnalyticsEvent(AnalyticsEvent.UI_SHOWN, {
           openTime: new Date(openTime).toISOString(),
           closeTime: new Date().toISOString(),
           openLength: (Date.now() - openTime) / 1e3,
